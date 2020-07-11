@@ -8,11 +8,24 @@ class User {
          this._password = password;
          this._photo = photo;
          this._admin = admin;
-         this._resgiter = new Date();
+         this._register = new Date();
+    }
+
+    loadFromJSON(json) {
+        for (let name in json) {
+            switch(name) {
+                case '_register':
+                    this[name] = new Date(json[name]);
+                    break;
+                default:
+                    this[name] = json[name];
+                    
+            }
+        }
     }
 
     get register () {
-        return this._resgiter
+        return this._register
     }
 
     get name () {
