@@ -26,12 +26,13 @@ class UserController {
             let result = Object.assign({}, userOld, values);
             this.getPhoto(this.formUpdateEl).then(content => {
                 if (!values.photo) {
-                    values.photo = userOld._photo;
+                    result.photo = userOld._photo;
                 }else {
-                    values.photo = content
+                    result.photo = content
                 }
                 let user = new User();
-                user.loadFromJSON(values);
+                user.loadFromJSON(result);
+                user.save();
                 this.getTr(user, tr);
                 this.updateCount();
                 this.formUpdateEl.reset();
@@ -52,7 +53,7 @@ class UserController {
             if (!value) return false;
             this.getPhoto(this.formEl).then(content => {
                 value.photo = content;
-                this.insert(value)
+                value.save();
                 this.addLine(value);
                 this.formEl.reset();
                 btn.disabled = false;
@@ -144,6 +145,9 @@ class UserController {
     addEventsTr (tr) {
         tr.querySelector(".btn-delete").addEventListener("click", e => {
             if(confirm("Deseja realmente excluir este usuário?")){
+                let user = new User();
+                user.loadFromJSON(JSON.parse(tr.dataset.user));
+                user.remove();
                 tr.remove();
                 this.updateCount();
             }
@@ -174,32 +178,13 @@ class UserController {
           });
     }
 
-    getUserStorage (){
-        let users = [];
-        // if (sessionStorage.getItem("users")) {
-        //     users = JSON.parse(sessionStorage.getItem("users"));
-        // }
-        if (localStorage.getItem("users")) {
-            users = JSON.parse(localStorage.getItem("users"));
-        }
-        return users
-    }
-
     selectAll () {
-        let users = this.getUserStorage();
+        let users = User.getUserStorage();
         users.forEach(dataUser => {
             let user = new User();
             user.loadFromJSON(dataUser);
             this.addLine(user)
         })
-    }
-    
-    insert (data) {
-        let users = this.getUserStorage();
-        users.push(data);
-        // sessionStorage.setItem("users", JSON.stringify(users));
-        localStorage.setItem("users", JSON.stringify(users));
-
     }
     
     addLine (dataUser) {
