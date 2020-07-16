@@ -1,6 +1,5 @@
 {
-/node-client-server/curso-javascript-projeto-usuarios/bower_components
-/node-client-server/back-end-node-restful/node_modules
-/node-client-server/node_modules
-/back-end-node-restful/node_modules
+**/node_modules
+**/bower_components
+**/dist
 }
