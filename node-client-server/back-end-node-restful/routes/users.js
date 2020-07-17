@@ -5,8 +5,8 @@ let db = new NeDB({
 });
 const {body} = require ('express-validator'); 
 
-let nameValidator = body('name').notEmpty().withMessage('O campo nome não pode estar vazio.');
-let emailValidator = body('email').notEmpty().isEmail().withMessage('O e-mail informado é inválido.');
+let nameValidator = body('_name').notEmpty().withMessage('O campo nome não pode estar vazio.');
+let emailValidator = body('_email').notEmpty().isEmail().withMessage('O e-mail informado é inválido.');
 module.exports = (app) => {
     let route = app.route('/users')
     route.get((req, res) => {
