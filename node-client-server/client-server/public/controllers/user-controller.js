@@ -33,7 +33,6 @@ class UserController {
                 let user = new User();
                 user.loadFromJSON(result);
                 user.save().then(user => {
-
                     this.getTr(user, tr);
                     this.updateCount();
                     this.formUpdateEl.reset();
