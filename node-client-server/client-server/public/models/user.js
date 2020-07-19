@@ -19,7 +19,7 @@ class User {
                     this[name] = new Date(json[name]);
                     break;
                 default:
-                    this[name] = json[name];
+                    if (name.substring(0, 1) === '_') this[name] = json[name];
                     
             }
         }
@@ -70,14 +70,7 @@ class User {
     }
 
     static getUserStorage (){
-        let users = [];
-        // if (sessionStorage.getItem("users")) {
-        //     users = JSON.parse(sessionStorage.getItem("users"));
-        // }
-        if (localStorage.getItem("users")) {
-            users = JSON.parse(localStorage.getItem("users"));
-        }
-        return users
+        return HttpRequest.get('/users');
     }
 
     getNewID(){
@@ -97,19 +90,23 @@ class User {
     }
 
     save () {
-        if (this.id) {
-            HttpRequest.put(`/users/${this.id}`, this.toJSON())
-        }
+        return new Promise((resolve, reject) => {
+            let promise;
+            if (this.id) {
+                promise = HttpRequest.put(`/users/${this.id}`, this.toJSON())
+            } else {
+                promise = HttpRequest.post(`/users`, this.toJSON())
+            }
+            promise.then(data => {
+                this.loadFromJSON(data);
+                resolve(this);
+            }).catch(e => {
+                reject(e)
+            })
+        })
     }
 
     remove () {
-        let users = User.getUserStorage();
-        users.forEach((userData, index) => {
-            if (this._id == userData._id) {
-                users.splice(index, 1);
-            }
-        });
-        localStorage.setItem("users", JSON.stringify(users));
+        return HttpRequest.delete(`/users/${this.id}`);
     }
-
 }
