@@ -3,45 +3,87 @@ class DropBoxController {
         this.btnSendFileEl = document.querySelector('#btn-send-file');
         this.inputFilesEl = document.querySelector('#files');
         this.snackModalEl = document.querySelector('#react-snackbar-root');
+        this.listFilesEl = document.querySelector("#list-of-files-and-directories");
+        this.btnNewFolder = document.querySelector('#btn-new-folder');
+        this.btnRename = document.querySelector('#btn-rename');
+        this.btnDelete = document.querySelector('#btn-delete');
         this.progressBarEl = this.snackModalEl.querySelector('.mc-progress-bar-fg');
         this.nameFileEl = this.snackModalEl.querySelector('.filename');
         this.timeLeftEl = this.snackModalEl.querySelector('.timeleft');
+        this.onSelectionChange = new Event('selectionChange');
         this.connectFirebase();
         this.initEvents();
-        import {firebase} from 'firebase'
+        this.readFiles();   
     }
 
-    connectFirebase(){
-    // Your web app's Firebase configuration
-    var firebaseConfig = {
-        apiKey: "AIzaSyD2qUebAGNoH6-HfWT-Tn2nTMHlOeCp8zk",
-        authDomain: "dropbox-clone-da256.firebaseapp.com",
-        databaseURL: "https://dropbox-clone-da256.firebaseio.com",
-        projectId: "dropbox-clone-da256",
-        storageBucket: "dropbox-clone-da256.appspot.com",
-        messagingSenderId: "934404338194",
-        appId: "1:934404338194:web:08d021745ba50f3669decb",
-        measurementId: "G-TNKECEY67V"
-    };
-    // Initialize Firebase
+    connectFirebase() {
+        // Your web app's Firebase configuration
+        var firebaseConfig = {
+            apiKey: "AIzaSyD2qUebAGNoH6-HfWT-Tn2nTMHlOeCp8zk",
+            authDomain: "dropbox-clone-da256.firebaseapp.com",
+            databaseURL: "https://dropbox-clone-da256.firebaseio.com",
+            projectId: "dropbox-clone-da256",
+            storageBucket: "dropbox-clone-da256.appspot.com",
+            messagingSenderId: "934404338194",
+            appId: "1:934404338194:web:08d021745ba50f3669decb",
+            measurementId: "G-TNKECEY67V"
+        };
+        // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         firebase.analytics();
     }
-    
+
+    getSelection(){
+        return this.listFilesEl.querySelectorAll('.selected');
+    }
+
     initEvents() {
+        this.btnRename.addEventListener('click', e=> {
+            let li = this.getSelection()[0];
+            let file = JSON.parse(li.dataset.file);
+            let name = prompt("Renomear o arquivo: ", file.name);
+            if (name) {
+                file.name = name;
+                this.getFirebaseRef().child(li.dataset.key).set(file);
+            }
+        })
+        this.listFilesEl.addEventListener('selectionChange', e => {
+            switch (this.getSelection().length) {
+                case 0:
+                    this.btnDelete.style.display = 'none';
+                    this.btnRename.style.display = 'none';
+                    break
+                case 1: 
+                    this.btnDelete.style.display = 'block';
+                    this.btnRename.style.display = 'block';
+                    break
+                default:
+                    this.btnDelete.style.display = 'block';
+                    this.btnRename.style.display = 'none';
+            }
+        })
         this.btnSendFileEl.addEventListener('click', event => {
             this.inputFilesEl.click();
         })
         this.inputFilesEl.addEventListener('change', event => {
+            this.btnSendFileEl.disabled = true;
             this.uploadTask(event.target.files).then(responses => {
                 responses.forEach(resp => {
                     this.getFirebaseRef().push().set(resp['input-file'])
                 })
-                this.modalShow(false)
+                this.uploadComplete();
+            }).catch(e => {
+                this.uploadComplete();
+                console.log(e);
             })
             this.modalShow();
-            this.inputFilesEl.value = '';
         })
+    }
+
+    uploadComplete() {
+        this.modalShow(false)
+        this.inputFilesEl.value = '';
+        this.btnSendFileEl.disabled = false;
     }
 
     getFirebaseRef(){
@@ -93,7 +135,6 @@ class DropBoxController {
         } else {
             this.timeLeftEl.innerHTML = this.formatTimeToHuman(timeLeft);;
         }
-        console.log(timeSpent, percent, timeLeft)
         
     }
 
@@ -269,12 +310,59 @@ class DropBoxController {
         }
     }
 
-    getFileView(file) {
-        return `
-            <li>
-                ${this.getFileIconView(file)}
-                <div> class="name text-center">${file.name}</div>
-            </li>
-        `;
+    getFileView(file, key) {
+        let li = document.createElement('li');
+        li.dataset.key = key
+        li.dataset.file = JSON.stringify(file);
+        li.innerHTML = `
+        ${this.getFileIconView(file)}
+        <div class="name text-center">${file.name}</div>`
+        this.initEventsLi(li);
+        return li;
+    }
+
+    readFiles() {
+        this.getFirebaseRef().on('value', snapshot => {
+            this.listFilesEl.innerHTML = '';
+            snapshot.forEach(snapshotItem => {
+                let key = snapshotItem.key;
+                let data = snapshotItem.val();
+                this.listFilesEl.appendChild(this.getFileView(data, key));
+            })
+        })
+    }
+    initEventsLi(li){
+        li.addEventListener('click', e => {
+            if (e.shiftKey) {
+                let firstLi = this.listFilesEl.querySelector('.selected');
+                if (firstLi) {
+                    let indexStart
+                    let indexEnd
+                    let lis = li.parentElement.childNodes;
+                    lis.forEach((el, index) => {
+                        if (firstLi === el) indexStart = index;
+                        if (li === el) indexEnd = index;
+                    })
+                    let index = [indexStart, indexEnd].sort();
+                    lis.forEach((el, i) => {
+                        if (i >= index[0] && i <= index [1]){
+                            el.classList.add('selected')
+                        }
+                    })
+                    this.listFilesEl.dispatchEvent(this.onSelectionChange)
+                    return true;
+                }
+            }
+            if (!e.ctrlKey) {
+                this.listFilesEl.querySelectorAll('li.selected').forEach(el => {
+                    el.classList.remove('selected')
+                }
+                    
+                )
+            }
+            li.classList.toggle('selected')
+            this.listFilesEl.dispatchEvent(this.onSelectionChange)
+
+        })
     }
 }
