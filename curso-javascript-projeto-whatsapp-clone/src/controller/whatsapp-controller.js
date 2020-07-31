@@ -1,4 +1,7 @@
-class WhatsAppController {
+import {Format} from '../util/format';
+import {CameraController} from './camera-controller';
+import {DocumentPreviewController} from './document-preview-controller'
+export class WhatsAppController {
     constructor() {
         this.elementsPrototype();
         this.loadElements();
@@ -122,20 +125,37 @@ class WhatsAppController {
                 console.log(file);
             })
         })
-        this.el.btnAttachCamera.on('click', e=> {
+        this.el.btnAttachCamera.on('click', e => {
             this.closeAllMainPanel();
             this.el.panelCamera.addClass('open');
             this.el.panelCamera.css({
-                'height':'calc(100% - 120px)'
+                'height':'100%'
             });
             this._camera = new CameraController(this.el.videoCamera);
         });
         this.el.btnClosePanelCamera.on('click', e=> {
             this.el.panelCamera.removeClass('open');
             this.el.panelMessagesContainer.show();
+            this._camera.stop();
         })
         this.el.btnTakePicture.on('click', e=> {
-            console.log('take picture');
+            let dataUrl = this._camera.takePicture();
+            this.el.pictureCamera.src = dataUrl;
+            this.el.pictureCamera.show();
+            this.el.videoCamera.hide();
+            this.el.btnReshootPanelCamera.show();
+            this.el.containerTakePicture.hide();
+            this.el.containerSendPicture.show();
+        })
+        this.el.btnReshootPanelCamera.on('click', e => {
+            this.el.pictureCamera.hide();
+            this.el.videoCamera.show();
+            this.el.btnReshootPanelCamera.hide();
+            this.el.containerTakePicture.show();
+            this.el.containerSendPicture.hide();
+        })
+        this.el.btnSendPicture.on('click', e => {
+            console.log(this.el.pictureCamera.src)
         })
         this.el.btnAttachDocument.on('click', e=> {
             this.closeAllMainPanel();
@@ -143,7 +163,48 @@ class WhatsAppController {
             this.el.panelDocumentPreview.css({
                 'height':'calc(100% - 120px)'
             });
+            this.el.inputDocument.click();
         });
+        this.el.inputDocument.on('change', e => {
+            this.el.panelDocumentPreview.css({
+                'height':'1%'
+            });
+            if(this.el.inputDocument.files.length){
+                let file = this.el.inputDocument.files[0];
+                this._documentPreviewController = new DocumentPreviewController(file);
+                this._documentPreviewController.getPreviewData().then(result => {
+                    this.el.panelDocumentPreview.css({
+                        'height':'100%'
+                    });
+                    this.el.imgPanelDocumentPreview.src = result.src;
+                    this.el.imagePanelDocumentPreview.show();
+                    this.el.imgPanelDocumentPreview.show();
+                    this.el.filePanelDocumentPreview.hide();
+                    this.el.infoPanelDocumentPreview.innerHTML = result.info;
+                }).catch(err => {
+                    this.el.panelDocumentPreview.css({
+                        'height':'100%'
+                    });
+                    switch (file.type) {
+                        case 'application/vdn.ms-excel':
+                            this.el.iconPanelDocumentPreview.className = 'jcxhw icon-doc-xls'
+                            break
+                        case 'application/vdn.ms-powerpoint':
+                            this.el.iconPanelDocumentPreview.className = 'jcxhw icon-doc-ppt'
+                            break
+                        case 'application/msword':
+                            this.el.iconPanelDocumentPreview.className = 'jcxhw icon-doc-doc'
+                            break
+                        default:
+                            this.el.iconPanelDocumentPreview.className = 'jcxhw icon-doc-generic'
+                            break
+                    }
+                    this.el.filenamePanelDocumentPreview.innerHTML = file.name;
+                    this.el.imagePanelDocumentPreview.hide();
+                    this.el.filePanelDocumentPreview.show();
+                })
+            }
+        })
         this.el.btnClosePanelDocumentPreview.on('click', e => {
             this.closeAllMainPanel();
             this.el.panelMessagesContainer.show();
