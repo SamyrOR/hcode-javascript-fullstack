@@ -2,11 +2,47 @@ import {Format} from '../util/format';
 import {CameraController} from './camera-controller';
 import {MicrophoneController} from './microphone-controller';
 import {DocumentPreviewController} from './document-preview-controller'
+import {Firebase} from '../util/firebase'
+import { User } from '../model/user';
+
+
 export class WhatsAppController {
     constructor() {
+        this._firebase = new Firebase;
+        this.initAuth()
         this.elementsPrototype();
         this.loadElements();
         this.initEvents();
+    }
+
+    initAuth() {
+        this._firebase.initAuth()
+        .then(response => {
+            this._user = new User(response.user.email);
+            this._user.on('datachange', data => {
+                document.querySelector('title').innerHTML = data.name + ' - WhatsApp Clone';
+                this.el.inputNamePanelEditProfile.innerHTML = data.name;
+                if (data.photo) {
+                    let photo = this.el.imgPanelEditProfile;
+                    photo.src = data.photo;
+                    photo.show();
+                    this.el.imgDefaultPanelEditProfile.hide();
+                    let photo2 = this.el.myPhoto.querySelector('img');
+                    photo2.src = data.photo;
+                    photo2.show();
+                }
+            })
+            this._user.name = response.user.displayName;
+            this._user.email = response.user.email;
+            this._user.photo = response.user.photoURL;
+            this._user.save().then(()=>{
+                this.el.appContent.css({
+                    display: 'flex'
+                });
+            })
+        }).catch(err => {
+            console.error(err)
+        })
     }
 
     loadElements() {
@@ -98,7 +134,11 @@ export class WhatsAppController {
             }
         })
         this.el.btnSavePanelEditProfile.on('click', e=> {
-            console.log(this.el.inputNamePanelEditProfile.innerHTML);
+            this.el.btnSavePanelEditProfile.disabled = true;
+            this._user.name = this.el.inputNamePanelEditProfile.innerHTML;
+            this._user.save().then(()=> {
+                this.el.btnSavePanelEditProfile.disabled = false;
+            })
         })
         this.el.formPanelAddContact.on('submit', e=> {
             e.preventDefault();
@@ -222,18 +262,21 @@ export class WhatsAppController {
         this.el.btnSendMicrophone.on('click', e => {
             this.el.recordMicrophone.show();
             this.el.btnSendMicrophone.hide();
-            this.startRecordMicrophoneTime();
             this._microphoneController = new MicrophoneController();
-            this._microphoneController.on('play', audio => {
-                console.log('recebi o evento play', audio)
+            this._microphoneController.on('ready', audio => {
+                console.log('ready event');
+                this._microphoneController.startRecorder();
+            })
+            this._microphoneController.on('recordtimer', timer => {
+                this.el.recordMicrophoneTimer.innerHTML = Format.toTime(timer)
             })
         })
         this.el.btnCancelMicrophone.on('click', e => {
-            this._microphoneController.stop()
+            this._microphoneController.stopRecorder();
             this.closeRecordMicrophone();
         })
         this.el.btnFinishMicrophone.on('click', e => {
-            this._microphoneController.stop()
+            this._microphoneController.stopRecorder();
             this.closeRecordMicrophone();
         })
         this.el.inputText.on('keypress', e => {
@@ -286,17 +329,10 @@ export class WhatsAppController {
         })
     }
 
-    startRecordMicrophoneTime() {
-        let start = Date.now();
-        this._recordMicrophoneInterval = setInterval(() => {
-            this.el.recordMicrophoneTimer.innerHTML = Format.toTime(Date.now() - start);
-        }, 100)
-    }
 
     closeRecordMicrophone(){
         this.el.recordMicrophone.hide();
         this.el.btnSendMicrophone.show();
-        clearInterval(this._recordMicrophoneInterval)
     }
 
     closeAllMainPanel() {
