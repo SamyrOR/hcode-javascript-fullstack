@@ -15,13 +15,13 @@ export class Message extends Model {
     get status() {return this._data.status}
     set status(value) { this._data.status = value}
 
-    getViewElement(){
+    getViewElement(me = true){
         let div = document.createElement('div');
         div.className = 'message';
         switch (this.type){
             case 'contact':
                 div.innerHTML = `
-                    <div class="_3_7SH kNKwo message-in tail">
+                    <div class="_3_7SH kNKwo tail">
                         <span class="tail-container"></span>
                         <span class="tail-container highlight"></span>
                         <div class="_1YNgi copyable-text">
@@ -67,7 +67,7 @@ export class Message extends Model {
                 break;
             case 'image':
                 div.innerHTML = `
-                    <div class="_3_7SH _3qMSo message-out">
+                    <div class="_3_7SH _3qMSo">
                         <div class="KYpDv">
                             <div>
                                 <div class="_3v3PK" style="width: 330px; height: 330px;">
@@ -122,7 +122,7 @@ export class Message extends Model {
                 break;
             case 'document':
                 div.innerHTML = `
-                    <div class="_3_7SH _1ZPgd message-out">
+                    <div class="_3_7SH _1ZPgd">
                         <div class="_1fnMt _2CORf">
                             <a class="_1vKRe" href="#">
                                 <div class="_2jTyA" style="background-image: url()"></div>
@@ -171,7 +171,7 @@ export class Message extends Model {
                 break;
             case 'audio':
                 div.innerHTML = `
-                    <div class="_3_7SH _17oKL message-out">
+                    <div class="_3_7SH _17oKL">
                         <div class="_2N_Df LKbsn">
                             <div class="_2jfIu">
                                 <div class="_2cfqh">
@@ -257,7 +257,7 @@ export class Message extends Model {
                 break;
             default:
                 div.innerHTML = `
-                    <div class="font-style _3DFk6 message-in tail">
+                    <div class="font-style _3DFk6 tail">
                         <span class="tail-container"></span>
                         <span class="tail-container highlight"></span>
                         <div class="Tkt2p">
@@ -273,6 +273,8 @@ export class Message extends Model {
                     </div>
                 `;
         }
+        let className = (me) ? 'message-out' : 'message-in'
+        div.firstElementChild.classList.add(className)
         return div;
     }
 
