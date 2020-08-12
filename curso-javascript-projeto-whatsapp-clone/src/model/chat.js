@@ -18,7 +18,7 @@ export class Chat extends Model {
     set chatId(value) {this._data.chatId = value;}
 
     static getRef(){
-        return Firebase.db().collection('/chats');
+        return Firebase.db().collection('chats');
     
     }
 
@@ -44,10 +44,7 @@ export class Chat extends Model {
     }
 
     static find (meEmail, contactEmail) {
-        return Chat.getRef()
-        .where(btoa(meEmail), '==', true)
-        .where(btoa(contactEmail), '==', true)
-        .get()
+        return Chat.getRef().where(btoa(meEmail), '==', true).where(btoa(contactEmail), '==', true).get();
 
     }
 

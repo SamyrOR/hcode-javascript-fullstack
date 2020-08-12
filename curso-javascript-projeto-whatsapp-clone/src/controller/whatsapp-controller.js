@@ -5,6 +5,7 @@ import {DocumentPreviewController} from './document-preview-controller'
 import {Firebase} from '../util/firebase'
 import { User } from '../model/user';
 import {Chat} from '../model/chat';
+import {Message} from '../model/message';
 
 
 export class WhatsAppController {
@@ -109,23 +110,41 @@ export class WhatsAppController {
                     img.show();
                 }
                 div.on('click', () => {
-                    console.log('chatId', contact.chatId);
-                    this.el.activeName.innerHTML = contact.name;
-                    this.el.activeStatus.innerHTML = contact.status;
-                    if (contact.photo){
-                        let img = this.el.activePhoto;
-                        img.src = contact.photo;
-                        img.show();
-                    }
-                    this.el.home.hide();
-                    this.el.main.css({
-                        display:'flex'
-                    })
+                    this.setActiveChat(contact)
                 })
                 this.el.contactsMessagesList.appendChild(div);
             })
         })
         this._user.getContacts();
+    }
+    
+    setActiveChat(contact) {
+        if (this._contactActive){
+            Message.getRef(this._contactActive.chatId).orderBy('timeStamp').onSnapshot(() => {})
+        }
+        this._contactActive = contact; 
+        this.el.activeName.innerHTML = contact.name;
+        this.el.activeStatus.innerHTML = contact.status;
+        if (contact.photo){
+            let img = this.el.activePhoto;
+            img.src = contact.photo;
+            img.show();
+        }
+        this.el.home.hide();
+        this.el.main.css({
+            display:'flex'
+        })
+        Message.getRef(this._contactActive.chatId).orderBy('timeStamp').onSnapshot(docs => {
+            this.el.panelMessagesContainer.innerHTML = '';
+            docs.forEach(doc => {
+                let data = doc.data();
+                let message = new Message();
+                message.fromJSON(data);
+                let me = (data.from === this._user.email);
+                let view = message.getViewElement(me);
+                this.el.panelMessagesContainer.appendChild(view);
+            })
+        })
     }
 
     loadElements() {
@@ -396,7 +415,9 @@ export class WhatsAppController {
             }
         })
         this.el.btnSend.on('click', e => {
-            console.log(this.el.inputText.innerHTML)
+            Message.send(this._contactActive.chatId, this._user.email, 'text', this.el.inputText.innerHTML);
+            this.el.inputText.innerHTML = '';
+            this.el.panelEmojis.removeClass('open')
         })
         this.el.btnEmojis.on('click', e => {
             this.el.panelEmojis.toggleClass('open');
