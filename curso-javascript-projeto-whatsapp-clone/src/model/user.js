@@ -57,7 +57,7 @@ export class User extends Model {
         return User.getRef().doc(id).collection('contacts');
     }
     static getRef() {
-        return Firebase.db().collection('/users');
+        return Firebase.db().collection('users');
     }
     static findByEmail(email){
         return User.getRef().doc(email)
