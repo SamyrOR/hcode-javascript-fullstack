@@ -43,6 +43,7 @@ export class Message extends Model {
 
     getViewElement(me = true){
         let div = document.createElement('div');
+        div.id = `_${this.id}`
         div.className = 'message';
         switch (this.type){
             case 'contact':
@@ -68,7 +69,7 @@ export class Message extends Model {
                                     </div>
                                 </div>
                                 <div class="_1lC8v">
-                                    <div dir="ltr" class="_3gkvk selectable-text invisible-space copyable-text">Nome do Contato Anexado</div>
+                                    <div dir="ltr" class="_3gkvk selectable-text invisible-space copyable-text">${this.content.name}</div>
                                 </div>
                                 <div class="_3a5-b">
                                     <div class="_1DZAH" role="button">
@@ -84,6 +85,12 @@ export class Message extends Model {
 
                     </div>
                 `;
+                if(this.content.photo) {
+                    let img = div.querySelector('.photo-contact-sended');
+                    img.src = this.content.photo;
+                    img.show();
+                }
+
                 break;
             case 'image':
                 div.innerHTML = `
@@ -265,7 +272,7 @@ export class Message extends Model {
                 break;
             default:
                 div.innerHTML = `
-                    <div class="font-style _3DFk6 tail" id="_${this.id}">
+                    <div class="font-style _3DFk6 tail">
                         <span class="tail-container"></span>
                         <span class="tail-container highlight"></span>
                         <div class="Tkt2p">
@@ -303,6 +310,10 @@ export class Message extends Model {
                     })
                 })
         })
+    }
+
+    static sendContact(chatId, from, contact){
+        return Message.send(chatId, from, 'contact', contact)
     }
 
     static  sendDocument(chatId, from, file, filePreview, info ){
