@@ -1,6 +1,7 @@
 import { Model } from '../model/model';
 import { Firebase } from "../util/firebase";
 import { Format } from '../util/format';
+import { Upload } from '../util/upload';
 
 export class Message extends Model {
     constructor() {
@@ -352,18 +353,7 @@ export class Message extends Model {
     }
 
     static upload(file, from){
-        return new Promise((s, f) => {
-            let uploadTask = Firebase.hd().ref(from).child(Date.now() + '_' + file.name).put(file);
-                uploadTask.on('state_changed', e => {
-                    console.info('upload', e);
-                }, err => {
-                    f(err);
-                }, () => {
-                    uploadTask.snapshot.ref.getDownloadURL().then(downloadURL => {
-                        s(downloadURL);
-                    })
-                })
-        })
+        return Upload.send(file, from);
     }
 
     static sendAudio(chatId, from, file, metadata, photo) {
