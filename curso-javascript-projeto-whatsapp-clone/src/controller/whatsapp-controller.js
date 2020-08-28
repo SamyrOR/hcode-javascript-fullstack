@@ -80,7 +80,7 @@ export class WhatsAppController {
                                 <span dir="auto" title="${contact.name}" class="_1wjpf">${contact.name}</span>
                             </div>
                             <div class="_3Bxar">
-                                <span class="_3T2VG">${Format.timeStampToTime(contact.lastMessageTime)}</span>
+                                <span class="_3T2VG">${contact.lastMessage}</span>
                             </div>
                         </div>
                         <div class="_1AwDx">
@@ -95,7 +95,7 @@ export class WhatsAppController {
                                             </svg>
                                         </span>
                                     </div>
-                                    <span dir="ltr" class="_1wjpf _3NFp9">${contact.lastMessageTime}</span>
+                                    <span dir="ltr" class="_1wjpf _3NFp9">${Format.timeStampToTime(contact.lastMessageTime)}</span>
                                     <div class="_3Bxar">
                                         <span>
                                             <div class="_15G96">
