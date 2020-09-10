@@ -1,6 +1,7 @@
 var express = require('express');
 var users = require('./../inc/users')
 var admin = require('./../inc/admin')
+var menus = require('./../inc/menus')
 var router = express.Router();
 router.use(function(req, res, next){
     if(['/login'].indexOf(req.url) === -1 && !req.session.user){
@@ -14,8 +15,12 @@ router.use(function(req, res, next){
     next()
 })
 router.get('/', function(req, res, next){
-    res.render('admin/index', {
-        menus: req.menus
+    admin.dashboard().then(data => {
+        res.render('admin/index', admin.getParams(req, {
+            data
+        }))
+    }).catch(err => {
+        console.error(err)
     })
 })
 router.get('/logout', function(req, res, next){
@@ -40,30 +45,28 @@ router.get('/login', function(req, res, next){
     users.render(req, res, null)
 })
 router.get('/contacts', function(req, res, next){
-    res.render('admin/contacts', {
-        menus: req.menus
-    })
+    res.render('admin/contacts', admin.getParams(req))
 })
 router.get('/emails', function(req, res, next){
-    res.render('admin/emails', {
-        menus: req.menus
-    })
+    res.render('admin/emails', admin.getParams(req))
 })
 router.get('/menus', function(req, res, next){
-    res.render('admin/menus', {
-        menus: req.menus
+    menus.getMenus().then(data => {
+        res.render('admin/menus', admin.getParams(req, {
+            data
+        }))
     })
+})
+router.post("/menus", function(req, res, next){
+    res.send(req.body)
 })
 router.get('/reservations', function(req, res, next){
-    res.render('admin/reservations', {
-        date:{},
-        menus: req.menus
-    })
+    res.render('admin/reservations', admin.getParams(req, {
+        date: {}
+    }))
 })
 router.get('/users', function(req, res, next){
-    res.render('admin/users', {
-        menus: req.menus
-    })
+    res.render('admin/users', admin.getParams(req))
 })
 
 module.exports = router
