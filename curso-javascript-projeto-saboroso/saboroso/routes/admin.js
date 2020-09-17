@@ -112,6 +112,13 @@ router.post('/users', function(req, res, next){
         res.send(err)
     })
 })
+router.post('/users/password-change', function(req, res, next){
+    users.changePassword(req).then(results =>{
+        res.send(results);
+    }).cacth(err => {
+        res.send(err)
+    })
+})
 router.delete('/users/:id', function(req, res, next){
     users.delete(req.params.id).then(results => {
         res.send(results)
