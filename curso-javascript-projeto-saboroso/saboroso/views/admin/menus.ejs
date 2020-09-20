@@ -146,7 +146,7 @@
   new HcodeFileReader('#modal-create [type=file]', '#modal-create img')
   new HcodeFileReader('#modal-update [type=file]', '#modal-update img')
   new HcodeGrid({
-    deleteMsg: 'Deseja realmente excluir o menu ${data.title}??',
+    deleteMsg: 'Deseja realmente excluir o menu ${data.title}?',
     deleteUrl: '/admin/menus/${data.id}',
     onUpdateLoad: (form, name, data) => {
       let input = form.querySelector(`[name=${name}]`)

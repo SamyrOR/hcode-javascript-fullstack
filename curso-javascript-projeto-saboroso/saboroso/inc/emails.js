@@ -13,20 +13,20 @@ module.exports = {
         })
     },
     delete (id) {
-        return new Promise((resolve, reject) => {
-          conn.query(`
-            DELETE FROM tb_emails WHERE id = ?
-          `,[
-            id
-          ], (err, results) => {
-            if(err){
-              reject(err);
-            } else {
-              resolve(results)
-            }
+      return new Promise((resolve, reject) => {
+        conn.query(`
+          DELETE FROM tb_emails WHERE id = ?
+        `,[
+          id
+        ], (err, results) => {
+          if(err){
+            reject(err);
+          } else {
+            resolve(results)
           }
-          )
-        })
+        }
+        )
+      })
     },
     save(req) {
         return new Promise((resolve, reject) => {
