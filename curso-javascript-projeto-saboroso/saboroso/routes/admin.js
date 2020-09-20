@@ -7,7 +7,9 @@ var contacts = require('./../inc/contacts')
 var emails = require('./../inc/emails')
 var moment = require('moment');
 var router = express.Router();
-moment.locale('pt-BR')
+
+module.exports = function(io){
+    moment.locale('pt-BR')
 router.use(function(req, res, next){
     if(['/login'].indexOf(req.url) === -1 && !req.session.user){
         res.redirect("/admin/login");
@@ -26,6 +28,11 @@ router.get('/', function(req, res, next){
         }))
     }).catch(err => {
         console.error(err)
+    })
+})
+router.get('/dashboard', function(req, res, next){
+    reservations.dashboard().then(data => {
+        res.send(data);
     })
 })
 router.get('/logout', function(req, res, next){
@@ -59,6 +66,7 @@ router.get('/contacts', function(req, res, next){
 router.delete('/contacts/:id', function(req, res, next){
     contacts.delete(req.params.id).then(results => {
         res.send(results);
+        io.emit('dashboard update');
     }).catch(err => {
         res.send(err);
     })
@@ -73,6 +81,8 @@ router.get('/emails', function(req, res, next){
 router.delete('/emails/:id', function(req, res, next){
     emails.delete(req.params.id).then(results => {
         res.send(results);
+        io.emit('dashboard update');
+
     }).catch(err => {
         res.send(err)
     })
@@ -87,6 +97,8 @@ router.get('/menus', function(req, res, next){
 router.post("/menus", function(req, res, next){
     menus.save(req.fields, req.files).then(results => {
         res.send(results)
+        io.emit('dashboard update');
+
     }).catch(err => {
         res.send(err)
     })
@@ -94,13 +106,15 @@ router.post("/menus", function(req, res, next){
 router.delete('/menus/:id', function (req, res, next){
     menus.delete(req.params.id).then(results => {
         res.send(results);
+        io.emit('dashboard update');
+
     }).catch(err => {
         res.send(err)
     })
 });
 router.get('/reservations', function(req, res, next){
     let start = (req.query.start) ? req.query.start : moment().subtract(1,'year').format('YYYY-MM-DD')
-    let end = (req.query.start) ? req.query.start : moment().format('YYYY-MM-DD')
+    let end = (req.query.end) ? req.query.end : moment().format('YYYY-MM-DD')
     reservations.getReservations(
         req
     ).then(pag =>{
@@ -116,9 +130,18 @@ router.get('/reservations', function(req, res, next){
 
     })
 })
+router.get('/reservations/chart', function(req, res, next){
+    req.query.start = (req.query.start) ? req.query.start : moment().subtract(1,'year').format('YYYY-MM-DD')
+    req.query.end = (req.query.end) ? req.query.end : moment().format('YYYY-MM-DD')
+    reservations.chart(req).then(chartData => {
+        res.send(chartData);
+    })
+})
 router.post("/reservations", function(req, res, next){
     reservations.save(req.fields, req.files).then(results => {
         res.send(results)
+        io.emit('dashboard update');
+
     }).catch(err => {
         res.send(err)
     })
@@ -126,6 +149,8 @@ router.post("/reservations", function(req, res, next){
 router.delete('/reservations/:id', function (req, res, next){
     reservations.delete(req.params.id).then(results => {
         res.send(results);
+        io.emit('dashboard update');
+
     }).catch(err => {
         res.send(err)
     })
@@ -140,6 +165,8 @@ router.get('/users', function(req, res, next){
 router.post('/users', function(req, res, next){
     users.save(req.fields).then(results => {
         res.send(results)
+        io.emit('dashboard update');
+
     }).catch(err => {
         res.send(err)
     })
@@ -156,9 +183,12 @@ router.post('/users/password-change', function(req, res, next){
 router.delete('/users/:id', function(req, res, next){
     users.delete(req.params.id).then(results => {
         res.send(results)
+        io.emit('dashboard update');
+
     }).catch(err => {
         res.send(err)
     })
 })
 
-module.exports = router
+    return router;
+}

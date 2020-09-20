@@ -42,7 +42,7 @@ class Pagination {
             nrStart = 1;
             nrEnd = limitPageNav;
         } else if ((this.getCurrentPage() + parseInt(limitPageNav/2)) > this.getTotalPages()) {
-            nrStart = this.getTotalPages() - limitPageNav;
+            nrStart = 1
             nrEnd = this.getTotalPages();
         } else {
             nrStart = this.getCurrentPage() - parseInt(limitPageNav/2);
