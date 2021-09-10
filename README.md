@@ -35,7 +35,7 @@
 ## 💻 About
 
 
-A udemy course from [Hcode Treinamentos | Você especialista](https://hcode.com.br/), covered the best practices and knowledge of vanilla js with 6 pratical projects. 
+A udemy course from [JavaScript - Curso COMPLETO com 6 Projetos REAIS | Udemy](https://www.udemy.com/course/javascript-curso-completo/), covered the best practices and knowledge of vanilla js with 6 pratical projects. 
 
 ---
 
